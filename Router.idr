@@ -28,9 +28,9 @@ data StaticRoute : Literal -> Type where
   MkStaticRoute : (lit:Literal) -> StaticRoute lit
 
 
-GET : (route:String) -> StaticRoute $ toLiteral $ unpack route
-GET route = MkStaticRoute $ toLiteral $ unpack $ route
+Lit : (route:String) -> StaticRoute $ toLiteral $ unpack route
+Lit route = MkStaticRoute $ toLiteral $ unpack $ route
 
 
-test: StaticRoute (ValidLiteral _) -> String
-test (MkStaticRoute v @ (ValidLiteral chars)) = show v
+GET : StaticRoute (ValidLiteral _) -> String
+GET (MkStaticRoute v @ (ValidLiteral chars)) = show v
