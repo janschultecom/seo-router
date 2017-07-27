@@ -47,5 +47,8 @@ pr = [Lit "parent"]
 r1 : HVect [LitType "parent", LitType "child"]
 r1 = [Lit "parent", Lit "child"]
 
+(/) : (p:String) -> (c:String) -> HVect [LitType p, LitType c]
+(/) parent child = [Lit parent, Lit child]
+
 IsChild : {t : Type } -> (parent:HVect ts) -> (child: HVect (ts ++ [t])) -> HVect (ts ++ [t])
 IsChild parent child = child
