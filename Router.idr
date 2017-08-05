@@ -8,15 +8,15 @@ literalChars = ['a'..'z'] ++ ['0'..'9'] ++ ['-']
 Error : Type
 Error = String
 
-data Literal : (lit:List Char) -> Type where
-  MkLiteral : (lit:List Char) -> Literal lit
+data Literal : (lit: String) -> Type where
+  MkLiteral : (lit: String) -> Literal lit
 
-toLiteral: (xs: List Char) -> Either Error (Literal xs)
-toLiteral [] = Right $ MkLiteral [] --Left "Literal cannot be empty"
+toLiteral: (xs: List Char) -> Either Error (Literal (pack xs))
+toLiteral [] = Right $ MkLiteral ""--Left "Literal cannot be empty"
 toLiteral (head :: tail) =
   if elem head literalChars
     then case toLiteral tail of
-      Right (MkLiteral _) => Right $ MkLiteral $ head :: tail
+      Right (MkLiteral _) => Right $ MkLiteral $ pack $ head :: tail
       Left msg => Left msg
     else Left $ "Found invalid char " ++ (show head)
 
@@ -30,7 +30,7 @@ Lit : (route:String) -> LitType route
 Lit route = MkStaticRoute $ toLiteral $ unpack $ route
 
 GET : StaticRoute $ Right _ -> String
-GET (MkStaticRoute (Right (MkLiteral lit))) = pack lit
+GET (MkStaticRoute (Right (MkLiteral lit))) = lit
 
 p1 : HVect [Char]
 p1 = ['c']
