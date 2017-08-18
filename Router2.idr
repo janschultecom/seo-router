@@ -21,17 +21,15 @@ data ValidString : (allowedChars: List Char) -> List Char -> Type where
   One : { allowedChars : List Char } -> { auto prf : Elem value allowedChars } -> ValidString allowedChars [value]
   Cons : { allowedChars : List Char } -> { auto prf : Elem value allowedChars } -> ValidString allowedChars xs -> ValidString allowedChars (value :: xs) 
 
-
-test : (allowedChars : List Char) -> (literal : List Char) -> { auto prf : ValidString allowedChars literal } -> ValidString allowedChars literal 
-test allowedChars [value] {prf = One} = One
-test allowedChars (value :: xs) {prf = (Cons there)} = Cons there
-
+Literal : {allowedChars : List Char} -> (literal : List Char) -> { auto prf : ValidString allowedChars literal } -> ValidString allowedChars literal
+Literal {allowedChars} [value] {prf = One} = One
+Literal {allowedChars} (value :: xs) {prf = (Cons there)} = Cons there
 
 x : List Char
-x = unpack "abc-"
+x = unpack "abc$-"
 
 y : ValidString Main.allowedChars Main.x
-y = test Main.allowedChars Main.x
+y = Literal Main.x
 
 
 
