@@ -26,7 +26,7 @@ Literal {allowedChars} [value] {prf = One} = One
 Literal {allowedChars} (value :: xs) {prf = (Cons there)} = Cons there
 
 x : List Char
-x = unpack "abc$-"
+x = unpack "abc-"
 
 y : ValidString Main.allowedChars Main.x
 y = Literal Main.x
