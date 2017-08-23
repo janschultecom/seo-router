@@ -9,18 +9,25 @@ data ValidString : List Char -> Type where
   One : { auto prf : Elem value Main.allowedChars } -> ValidString [value]
   Cons : { auto prf : Elem value Main.allowedChars } -> ValidString xs -> ValidString (value :: xs) 
 
-Literal : (literal : List Char) -> { auto prf : ValidString literal } -> ValidString literal
-Literal [value] {prf = One} = One
-Literal (value :: xs) {prf = (Cons there)} = Cons there
+LiteralT : String -> Type 
+LiteralT s = ValidString (unpack s)
 
+LiteralHelper : (lit:List Char) -> ( prf : ValidString lit ) -> ValidString lit
+LiteralHelper [value] One = One
+LiteralHelper (value :: xs) (Cons x) = Cons x
 
-data Route : Type where
- Lit : (lit : ValidString x) ->  Route
+Literal : (literal : String) -> { auto prf : LiteralT literal } -> LiteralT literal
+Literal literal {prf} = let lit = unpack literal in 
+                            LiteralHelper lit prf
+                        
+data Routes : Type where
+  Root : Routes
+  Slash : (parent : p) -> (child : c) -> Routes
 
-data IsSubRoute : HVect ts -> Type where
-  Root : IsSubRoute []
-  Slash : (parent : ts ) -> (child : t ) -> IsSubRoute [ts ++ t]
+-- ($) :: (a -> b) -> a -> b  
+(/) : (parent : p) -> (child : c) -> Routes
+(/) parent child = Slash parent child
 
+x : Routes
+x = Root / (Literal "brands") / (Literal "fashion")
 
-x : IsSubRoute [String]
-x = Slash Root ["asd"]
