@@ -28,6 +28,6 @@ toLiteral lit {prf} = Literal lit
 (/) : (parent : Route segment) -> (child : c) -> Route (segment ++ [c])
 (/) parent child = Slash parent child
 
-x : Route [Base,LiteralRoute "brands",LiteralRoute "fashion"]
-x = Root / "brands" / "fashion"
+x : Route [Base,LiteralRoute "category",LiteralRoute "fashion"]
+x = Root / "category" / "fashion"
 
