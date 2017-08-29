@@ -28,6 +28,11 @@ toLiteral lit {prf} = Literal lit
 (/) : (parent : Route segment) -> (child : c) -> Route (segment ++ [c])
 (/) parent child = Slash parent child
 
-x : Route [Base,LiteralRoute "category",LiteralRoute "fashion"]
-x = Root / "category" / "fashion"
+--x : Route [Base,LiteralRoute "category",LiteralRoute "fashion"]
+--x = Root / "category" / "fashion"
 
+data RoutesConfiguration : Type where
+  Routes : (route : Route segment) -> RoutesConfiguration
+
+test : RoutesConfiguration
+test = Routes ( Root / Literal "category" / Literal "fashion" ) 
