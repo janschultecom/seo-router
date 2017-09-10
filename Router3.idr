@@ -21,8 +21,8 @@ data Route :  (level:Nat) -> Vect k Type -> Type where
   Root : Route Z [Base]
   Slash : (parent : Route current segment) -> (child : c) -> Route (S current) (segment ++ [c])
 
---data SubRoute : Route p -> Route c -> Type where
---  Parent : (parent : Route segment) -> (child : Route (segment ++ [c])) -> SubRoute parent child
+data IsSubRoute : Route pL pS -> Route cL cS -> Type where
+  Parent : (parent : Route level segment) -> (child : Route (S level) (segment ++ [c])) -> IsSubRoute parent child
 
 implicit toLiteral : (lit:String) -> { auto prf : ValidString (unpack lit) } -> LiteralRoute lit
 toLiteral lit {prf} = Literal lit
@@ -34,7 +34,15 @@ toLiteral lit {prf} = Literal lit
 --x = Root / "category" / "fashion"
 
 data RoutesConfiguration : Type where
-  Routes : (route : Route level segment) -> { auto lt : LTE level Main.maxLevel } -> RoutesConfiguration
+  Empty : (route: Route Z [Base]) -> RoutesConfiguration
+  Routes : (parent: Route parentLevel parentSegment) -> 
+           (route : Route childLevel childSegment) -> 
+--           { auto is : IsSubRoute parent route } -> 
+           { auto lt : LTE childLevel Main.maxLevel } -> 
+           RoutesConfiguration
 
 test : RoutesConfiguration
-test = Routes ( Root / Literal "category" / Literal "fashion" / Literal "bla" ) 
+test = Routes Root ( Root / Literal "category" ) -- / Literal "fashion" / Literal "bla" ) 
+
+parent : Route 1 [Base,LiteralRoute "category"]
+parent = Root / Literal "category"
