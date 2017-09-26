@@ -12,37 +12,45 @@ data ValidString : List Char -> Type where
   One : { auto prf : Elem value Main.allowedChars } -> ValidString [value]
   Cons : { auto prf : Elem value Main.allowedChars } -> ValidString xs -> ValidString (value :: xs) 
 
-data LiteralRoute : (lit:String) -> Type where
-  Literal : (lit : String) -> { auto prf : ValidString (unpack lit) } -> LiteralRoute lit
+data LiteralRoute : String -> Type where
+  --Literal : (lit : String) -> { auto prf : ValidString (unpack lit) } -> LiteralRoute lit
+  LiteralR : { auto prf : ValidString (unpack lit) } -> LiteralRoute lit
                     
+Literal : (lit:String) -> { auto prf : LiteralRoute lit } -> LiteralRoute lit
+Literal lit {prf} = prf
+
 data Base = MkBase    
 
-data Route :  (level:Nat) -> Vect k Type -> Type where
-  Root : Route Z [Base]
-  Slash : (parent : Route current segment) -> (child : c) -> Route (S current) (segment ++ [c])
+infixl 9 /
+data Route :  Vect k Type -> Type where
+  Root : Route [Base]
+  (/) : (parent : Route segment) -> (child : c) -> Route (c :: segment)
+--  Slash : (parent : Route segment) -> (child : c) -> Route (c :: segment)
 
-data IsSubRoute : Route pL pS -> Route cL cS -> Type where
-  Parent : (parent : Route level segment) -> (child : Route (S level) (segment ++ [c])) -> IsSubRoute parent child
+data IsSubRoute : Route pS -> Route cS -> Type where
+  Parent : (parent : Route segment) -> (child : Route (c :: segment)) -> IsSubRoute parent child
+--  Parent : (parent : Route segment) -> (child : Route (c :: segment)) -> IsSubRoute parent child
 
 implicit toLiteral : (lit:String) -> { auto prf : ValidString (unpack lit) } -> LiteralRoute lit
 toLiteral lit {prf} = Literal lit
 
-(/) : (parent : Route current segment) -> (child : c) -> Route (S current) (segment ++ [c])
-(/) parent child = Slash parent child
+--(/) : (parent : Route segment) -> (child : c) -> Route (c :: segment)
+--(/) parent child = Slash parent child
 
 --x : Route [Base,LiteralRoute "category",LiteralRoute "fashion"]
 --x = Root / "category" / "fashion"
 
+infixr 10 &
 data RoutesConfiguration : Type where
-  Empty : (route: Route Z [Base]) -> RoutesConfiguration
-  Routes : (parent: Route parentLevel parentSegment) -> 
-           (route : Route childLevel childSegment) -> 
+  Empty : (route: Route [Base]) -> RoutesConfiguration
+  (&) : (parent: Route parentSegment) -> 
+  --Routes : (parent: Route parentSegment) -> 
+           (route : Route (childSegment :: parentSegment)) -> 
 --           { auto is : IsSubRoute parent route } -> 
-           { auto lt : LTE childLevel Main.maxLevel } -> 
+           { auto lt : LTE (length (childSegment :: parentSegment) ) Main.maxLevel } -> 
            RoutesConfiguration
 
 test : RoutesConfiguration
-test = Routes Root ( Root / Literal "category" ) -- / Literal "fashion" / Literal "bla" ) 
+test = (Root / Literal "category") & 
+       (Root / Literal "category" / Literal "bla")  -- / Literal "fashion" / Literal "bla" ) 
 
-parent : Route 1 [Base,LiteralRoute "category"]
-parent = Root / Literal "category"
