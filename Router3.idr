@@ -39,9 +39,21 @@ data RoutesConfiguration : Type where
            { auto lt : LTE (length (childSegment :: parentSegment) ) Main.maxLevel } -> 
            RoutesConfiguration
 
-data HttpMethod = GET | POST | DELETE | PUT 
+data HttpMethod = HttpGet | HttpPost | HttpDelete | HttpPut 
 
 test : RoutesConfiguration
 test = Root / Literal "category" & 
        Root / Literal "category" / Literal "bla"  -- / Literal "fashion" / Literal "bla" ) 
+
+HttpHandler : Type 
+HttpHandler = String -> String 
+
+handler : HttpHandler
+handler = id
+
+GET : Route r -> HttpHandler -> (HttpMethod, Route r, HttpHandler)
+GET route handler = (HttpGet, route, handler) 
+
+x : (HttpMethod, Route [LiteralRoute "category", Base], HttpHandler )
+x = GET (Root / Literal "category") handler
 
