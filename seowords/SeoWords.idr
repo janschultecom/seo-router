@@ -1,14 +1,18 @@
 module Main
 
-import SeoWordsProvider
+import WordsProvider
 import Data.List
+import Data.List.Quantifiers
 
 %language TypeProviders
 
-%provide (seoWords : List String) with readSeoWords "seo-words.txt"
+%provide (seoWords : List String) with readWords "seo-words.txt"
 
-say : (validWords : List String) -> (s:String) -> { auto prf : Elem s validWords } -> IO ()
-say _ s = printLn s
+numberInfixes : String -> Nat
+numberInfixes word = length $ filter (\w => isInfixOf w word) $ filter (/= "") seoWords
+
+say : (s:String) -> { auto prf : GT (numberInfixes s) Z } -> IO ()
+say s = printLn s
 
 main : IO ()
-main = say seoWords "sportssada"
+main = say "brand-1234"
