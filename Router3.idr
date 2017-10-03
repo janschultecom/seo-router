@@ -1,59 +1,67 @@
 import Data.List
 import Data.HVect
 
-
 allowedChars : List Char
 allowedChars = ['a'..'z'] ++ ['0'..'9'] ++ ['-']
-
-maxLevel : Nat
-maxLevel = 3 
 
 data ValidLiteral : List Char -> Type where
   One : { auto prf : Elem value Main.allowedChars } -> ValidLiteral [value]
   Multi : { auto prf : Elem value Main.allowedChars } -> ValidLiteral xs -> ValidLiteral (value :: xs) 
 
 data LiteralRoute : String -> Type where
-  LiteralR : { auto prf : ValidLiteral (unpack lit) } -> LiteralRoute lit
+  Literal : (lit:String) -> { auto prf : ValidLiteral (unpack lit) } -> LiteralRoute lit
                     
-Literal : (lit:String) -> { auto prf : LiteralRoute lit } -> LiteralRoute lit
-Literal lit {prf} = prf
-
 data Base = MkBase    
 
+maxLevel : Nat
+maxLevel = 3 
+
 infixl 9 /
-data Route :  Vect k Type -> Type where
+data Route :  List Type -> Type where
   Root : Route [Base]
-  (/) : (parent : Route segment) -> (child : c) -> Route (c :: segment)
+  (/) : Route parent -> 
+        child ->
+        { auto prf : LTE (length (child :: parent) ) Main.maxLevel } ->  
+        Route (child :: parent)
 
-implicit toLiteral : (lit:String) -> { auto prf : ValidLiteral (unpack lit) } -> LiteralRoute lit
-toLiteral lit {prf} = Literal lit
+-- route : Route [Base,LiteralRoute "category",LiteralRoute "fashion"]
+-- route = Root / "category" / "fashion"
 
---x : Route [Base,LiteralRoute "category",LiteralRoute "fashion"]
---x = Root / "category" / "fashion"
-
-infixr 8 &
-data RoutesConfiguration : Type where
-  Empty : (route: Route [Base]) -> RoutesConfiguration
-  (&) : (parent: Route parentSegment) -> 
-           (route : Route (childSegment :: parentSegment)) -> 
-           { auto lt : LTE (length (childSegment :: parentSegment) ) Main.maxLevel } -> 
-           RoutesConfiguration
+--------------------------------------
 
 data HttpMethod = HttpGet | HttpPost | HttpDelete | HttpPut 
-
-test : RoutesConfiguration
-test = Root / Literal "category" & 
-       Root / Literal "category" / Literal "bla"  -- / Literal "fashion" / Literal "bla" ) 
 
 HttpHandler : Type 
 HttpHandler = String -> String 
 
+RouteHandler : List Type -> Type
+RouteHandler r = (HttpMethod, Route r, HttpHandler)
+
+GET : Route r -> HttpHandler -> RouteHandler r 
+GET route handler = (HttpGet, route, handler) 
+
 handler : HttpHandler
 handler = id
 
-GET : Route r -> HttpHandler -> (HttpMethod, Route r, HttpHandler)
-GET route handler = (HttpGet, route, handler) 
+sampleRoute : (HttpMethod, Route [LiteralRoute "category", Base], HttpHandler )
+sampleRoute = GET (Root / Literal "category") handler
 
-x : (HttpMethod, Route [LiteralRoute "category", Base], HttpHandler )
-x = GET (Root / Literal "category") handler
+---------------------------------------
+
+infixl 8 &
+data RoutesConfiguration : List (List Type) -> Type where
+  Routes : (root: RouteHandler [Base]) -> RoutesConfiguration [[Base]]
+  (&) : RoutesConfiguration routes -> 
+        RouteHandler (child :: parent)  ->
+        { auto prf : Elem parent routes } ->  
+        RoutesConfiguration ( (child :: parent) :: routes) 
+
+data HttpService : Type where
+  MkHttpService : RoutesConfiguration (x :: xs) -> HttpService 
+
+routes : HttpService
+routes = MkHttpService $ Routes ( GET Root handler ) &      
+          GET (Root / Literal "category") handler & 
+          GET (Root / Literal "category" / Literal "bla") handler 
+          
 
