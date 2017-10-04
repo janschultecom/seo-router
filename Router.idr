@@ -74,9 +74,10 @@ data RoutesConfiguration : List (List Type) -> Type where
 data HttpService : Type where
   MkHttpService : RoutesConfiguration (x :: xs) -> HttpService 
 
-routes : HttpService
-routes = MkHttpService $ Routes ( GET Root handler ) &      
-          GET (Root / Literal "category") handler & 
-          GET (Root / Literal "category" / Literal "sports-bar") handler 
+service : HttpService
+service = MkHttpService $ Routes 
+            ( GET  Root handler ) &      
+            ( GET (Root / Literal "category") handler) & 
+            ( GET (Root / Literal "category" / Literal "sports-bar") handler )
           
 
